@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        :root {
+            --primary: #00AF41;
+            --primary-hover: #008f38;
+            --bg: #ffffff;
+            --surface: #f5f5f5;
+            --text: #1a1a1a;
+            --text-secondary: #666666;
+            --border: #e0e0e0;
+            --error: #ff3b30;
+            --bg-primary: #ffffff;
+            --text-primary: #1a1a1a;
+            --bg-secondary: #f5f5f5;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            width: 280px;
+            overflow: hidden;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 300px;
+            padding: 16px;
+            box-sizing: border-box;
+            width: 280px;
+            box-sizing: border-box;
+        }
+        
+        .input-group {
+            margin-bottom: 16px;
+        }
+        
+        .input-field {
+            position: relative;
+            width: 100%;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            outline: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            height: 36px;
+        }
+        
+        .input-field input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 175, 65, 0.2);
+        }
+        
+        .input-field input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+        
+        button {
+            width: 100%;
+            padding: 0 16px;
+            height: 36px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            flex-shrink: 0;
+        }
+        
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #e0e0e0;
+            color: #a0a0a0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            border: 1px solid #e0e0e0;
+        }
+        
+        #qrcode {
+            margin: 0 auto;
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            margin-bottom: 16px;
+        }
+        
+        #qrcode.visible {
+            display: flex;
+        }
+        
+        #qrcode svg {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        
+        .export-section {
+            display: none;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .export-section.visible {
+            display: block;
+        }
+        
+        .export-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .format-options {
+            display: flex;
+            width: 100%;
+            gap: 8px;
+        }
+        
+        .format-options.visible {
+            display: flex;
+        }
+        
+        .format-btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        
+        .format-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .format-btn svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        
+        #qrcode p {
+            color: var(--text-secondary);
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 0 0 16px 0;
+            padding: 0 8px;
+        }
+        
+        .error {
+            color: var(--error);
+            font-size: 12px;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background-color: #fff0f0;
+            border-radius: 4px;
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .input-field.error input {
+            border-color: var(--error);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-group">
+            <div class="input-field">
+                <input type="text" id="qr-text" placeholder="Enter URL or text" autofocus />
+                <div id="error" class="error">Please enter some text</div>
+            </div>
+        </div>
+        <button id="generate">Generate QR Code</button>
+        <div id="qrcode">
+            <p>Your QR code is ready!</p>
+            <div id="qrcode-svg"></div>
+        </div>
+        <div class="export-section">
+            <div id="format-options" class="format-options">
+                <button class="format-btn" data-format="svg">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm2 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H7z"/>
+                    </svg>
+                    SVG
+                </button>
+                <button class="format-btn" data-format="png">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                    </svg>
+                    PNG
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script>
+        const qrText = document.getElementById('qr-text');
+        const generateBtn = document.getElementById('generate');
+        const qrCodeContainer = document.getElementById('qrcode');
+        const errorElement = document.getElementById('error');
+        let qrCode = null;
+
+        // Generate SVG QR code with custom rect elements
+        function generateQRCode() {
+            const text = qrText.value.trim();
+            
+            if (!text) {
+                errorElement.style.display = 'block';
+                qrText.parentElement.classList.add('error');
+                return;
+            }
+            
+            errorElement.style.display = 'none';
+            qrText.parentElement.classList.remove('error');
+            
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            
+            // Clear previous QR code
+            document.getElementById('qrcode-svg').innerHTML = '';
+            
+            // Show QR code container
+            qrCodeContainer.classList.add('visible');
+            
+            // Hide format options initially
+            document.querySelector('.export-section').classList.remove('visible');
+            
+            // Small delay to allow UI to update
+            setTimeout(() => {
+                try {
+                    // Generate QR code with qrcode-generator
+                    const qr = qrcode(0, 'H');
+                    qr.addData(text);
+                    qr.make();
+                    
+                    // Create SVG with rect elements
+                    const moduleSize = 4; // Size of each QR module in pixels
+                    const modules = qr.getModuleCount();
+                    const size = modules * moduleSize;
+                    
+                    let svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+                    
+                    // Add white background
+                    svg += `<rect width="100%" height="100%" fill="#ffffff"/>`;
+                    
+                    // Add QR code modules as rect elements
+                    for (let row = 0; row < modules; row++) {
+                        for (let col = 0; col < modules; col++) {
+                            if (qr.isDark(row, col)) {
+                                const x = col * moduleSize;
+                                const y = row * moduleSize;
+                                svg += `<rect x="${x}" y="${y}" width="${moduleSize}" height="${moduleSize}" fill="#000000"/>`;
+                            }
+                        }
+                    }
+                    
+                    svg += '</svg>';
+                    
+                    // Add the SVG to the container
+                    document.getElementById('qrcode-svg').innerHTML = svg;
+                    
+                    // Show export section
+                    document.querySelector('.export-section').classList.add('visible');
+                    
+                    // Resize the plugin window to fit content
+                    const height = document.documentElement.scrollHeight;
+                    parent.postMessage({
+                        pluginMessage: {
+                            type: 'resize',
+                            height: height
+                        }
+                    }, '*');
+                    
+                } catch (error) {
+                    console.error('Error generating QR code:', error);
+                    errorElement.textContent = 'Error generating QR code';
+                    errorElement.style.display = 'block';
+                } finally {
+                    // Reset button state
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = 'Generate QR Code';
+                }
+            }, 50);
+        }
+        
+        function insertSvgIntoFigma() {
+            try {
+                const svgElement = document.querySelector('#qrcode-svg svg');
+                if (!svgElement) {
+                    showError('No QR code found. Please generate a QR code first.');
+                    return;
+                }
+                
+                // Show loading state
+                const originalButtonText = document.querySelector('.format-btn[data-format="svg"]').innerHTML;
+                const svgButton = document.querySelector('.format-btn[data-format="svg"]');
+                svgButton.disabled = true;
+                svgButton.innerHTML = '<div class="spinner"></div>';
+                
+                // Create a clone to avoid modifying the original
+                const clone = svgElement.cloneNode(true);
+                
+                // Set explicit width, height, and viewBox
+                clone.setAttribute('width', '200');
+                clone.setAttribute('height', '200');
+                clone.setAttribute('viewBox', '0 0 200 200');
+                
+                // Ensure proper XML namespace
+                if (!clone.getAttribute('xmlns')) {
+                    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                }
+                
+                // Serialize SVG to string
+                const serializer = new XMLSerializer();
+                let svgString = serializer.serializeToString(clone);
+                
+                // Add XML declaration
+                svgString = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' + svgString;
+                
+                // Convert to base64
+                const svgData = btoa(unescape(encodeURIComponent(svgString)));
+                
+                // Send to Figma
+                parent.postMessage({
+                    pluginMessage: {
+                        type: 'create-svg',
+                        svgData: svgData
+                    }
+                }, '*');
+                
+            } catch (error) {
+                console.error('Error in SVG export:', error);
+                showError('Failed to export as SVG. Please try again.');
+            } finally {
+                // Reset button state
+                const svgButton = document.querySelector('.format-btn[data-format="svg"]');
+                if (svgButton) {
+                    svgButton.disabled = false;
+                    svgButton.innerHTML = originalButtonText || 'SVG';
+                }
+            }
+        }
+        
+        // Helper function to show error messages
+        function showError(message) {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            
+            // Hide error after 5 seconds
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Handle format button clicks
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.format-btn')) {
+                const format = e.target.closest('.format-btn').dataset.format;
+                if (format === 'svg') {
+                    insertSvgIntoFigma();
+                } else if (format === 'png') {
+                    insertImageIntoFigma();
+                }
+            }
+        });
+        
+        // Initialize button state
+        function updateGenerateButtonState() {
+            const hasText = qrText.value.trim().length > 0;
+            generateBtn.disabled = !hasText;
+            
+            if (!hasText) {
+                qrText.parentElement.classList.remove('error');
+                errorElement.style.display = 'none';
+            }
+        }
+
+        // Event listeners
+        generateBtn.addEventListener('click', generateQRCode);
+        
+        // Handle input changes
+        qrText.addEventListener('input', updateGenerateButtonState);
+        
+        // Handle Enter key
+        qrText.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && qrText.value.trim().length > 0) {
+                generateQRCode();
+            }
+        });
+        
+        // Initialize button state on load
+        updateGenerateButtonState();
+        
+        // Function to insert image (PNG) into Figma
+        function insertImageIntoFigma() {
+            try {
+                const svgElement = document.querySelector('#qrcode-svg svg');
+                if (!svgElement) {
+                    showError('No QR code found. Please generate a QR code first.');
+                    return;
+                }
+                
+                // Show loading state
+                const originalButtonText = document.querySelector('.format-btn[data-format="png"]').innerHTML;
+                const pngButton = document.querySelector('.format-btn[data-format="png"]');
+                pngButton.disabled = true;
+                pngButton.innerHTML = '<div class="spinner"></div>';
+                
+                // Create a clone to avoid modifying the original
+                const clone = svgElement.cloneNode(true);
+                
+                // Set explicit width, height, and viewBox
+                const size = 200;
+                clone.setAttribute('width', size);
+                clone.setAttribute('height', size);
+                clone.setAttribute('viewBox', `0 0 ${size} ${size}`);
+                
+                // Ensure proper XML namespace
+                if (!clone.getAttribute('xmlns')) {
+                    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                }
+                
+                // Serialize SVG to string
+                const serializer = new XMLSerializer();
+                let svgString = serializer.serializeToString(clone);
+                
+                // Add XML declaration
+                svgString = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' + svgString;
+                
+                // Create image element
+                const img = new Image();
+                const svgUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+                
+                img.onload = function() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = size;
+                        canvas.height = size;
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Draw white background
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0, 0, size, size);
+                        
+                        // Draw the QR code
+                        ctx.drawImage(img, 0, 0, size, size);
+                        
+                        // Convert to PNG and send to Figma
+                        const pngData = canvas.toDataURL('image/png');
+                        
+                        parent.postMessage({
+                            pluginMessage: {
+                                type: 'create-image',
+                                imageData: pngData,
+                                format: 'png'
+                            }
+                        }, '*');
+                    } catch (canvasError) {
+                        console.error('Canvas Error:', canvasError);
+                        showError('Failed to create PNG. Please try again.');
+                    } finally {
+                        // Reset button state
+                        if (pngButton) {
+                            pngButton.disabled = false;
+                            pngButton.innerHTML = originalButtonText || 'PNG';
+                        }
+                    }
+                };
+                
+                img.onerror = function() {
+                    console.error('Failed to load SVG image');
+                    showError('Failed to generate PNG. Please try again.');
+                    // Reset button state
+                    if (pngButton) {
+                        pngButton.disabled = false;
+                        pngButton.innerHTML = originalButtonText || 'PNG';
+                    }
+                };
+                
+                // Start loading the image
+                img.src = svgUrl;
+                
+            } catch (error) {
+                console.error('Error in PNG export:', error);
+                showError('Failed to export as PNG. Please try again.');
+                // Reset button state
+                const pngButton = document.querySelector('.format-btn[data-format="png"]');
+                if (pngButton) {
+                    pngButton.disabled = false;
+                    pngButton.innerHTML = 'PNG';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
